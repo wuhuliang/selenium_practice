@@ -3,6 +3,7 @@
 import unittest
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import NoSuchElementException
 import excel_table
 
 
@@ -19,17 +20,27 @@ class Zentao_demo(unittest.TestCase):
         """测试登录功能"""
         zentao = self.br
 
-        username = zentao.find_element_by_name('account')
-        username.clear()
-        username.send_keys('wuhuliang')
+        listdata = excel_table.excel_table_byindex('F:\python practice\selenium_practice\\auto_testCase.xlsx')
 
-        password = zentao.find_element_by_name('password')
-        password.clear()
-        password.send_keys('aaaaaa')
+        if len(listdata) <= 0:
+            assert 0, u'Excel数据异常'
 
-        zentao.find_element_by_id('submit').click()
-        zentao.implicitly_wait(5)
-        self.assertIn(u'华栖云科技hhh', self.br.find_element_by_id('companyname').text)
+        for i in range(len(listdata)):
+            username = zentao.find_element_by_name('account')
+            username.clear()
+            username.send_keys(listdata[i]['username'])
+            password = zentao.find_element_by_name('password')
+            password.clear()
+            password.send_keys(listdata[i]['password'])
+
+            zentao.find_element_by_id('submit').click()
+            zentao.implicitly_wait(5)
+            try:
+                elem = zentao.find_element_by_id('companyname')
+            except NoSuchElementException:
+                assert 0, u'登录失败'
+
+            zentao.find_element_by_xpath('//*[@id="topnav"]/a[1]').click()
 
 
 
